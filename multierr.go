@@ -1,7 +1,8 @@
 package multierr
 
 import (
-	"bytes"
+	"strings"
+	"reflect"
 )
 
 type Error []error
@@ -9,21 +10,11 @@ type Error []error
 // Error prints out all of the Errors contained within the Error.
 // Each Error is printed on its own line (a \n is appended to the output)
 func (me Error) Error() string {
-	var out bytes.Buffer
-	for _, v := range me {
-		out.WriteString(v.Error())
-		out.WriteString("\n")
+	a := make([]string, len(me))
+	for k, v := range me {
+		a[k] = v.Error()
 	}
-	return out.String()
-}
-
-// Append adds an error to a Error. If the Error is nil, a
-// new Error is instantiated
-func (me *Error) Append(e error) {
-	if *me == nil {
-		*me = Error{}
-	}
-	*me = append(*me, e)
+	return strings.Join(a, "\n")
 }
 
 // The Append package-level function takes in two errors and returns back one error
@@ -31,16 +22,38 @@ func (me *Error) Append(e error) {
 // If the first parameter is a Error, then the function returns the second parameter
 // appended to the first. Otherwise, the function returns a Error containing both parameters.
 func Append(e1 error, e2 error) error {
-	if e1 == nil {
+	if isNil(e1) {
 		return e2
 	}
-	if e2 == nil {
+	if isNil(e2) {
 		return e1
 	}
 	switch e1 := e1.(type) {
 	case Error:
-		return append(e1, e2)
+		switch e2 := e2.(type) {
+		case Error:
+			return append(e1, e2...)
+		default:
+			return append(e1, e2)
+		}
 	default:
-		return Error{e1, e2}
+		switch e2 := e2.(type) {
+		case Error:
+			return append(Error{e1}, e2...)
+		default:
+			return Error{e1, e2}
+		}
+	}
+}
+
+func isNil(i interface{}) bool {
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Invalid:
+		return i == nil
+	case reflect.Interface, reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.Slice:
+		return v.IsNil()
+	default:
+		return false
 	}
 }

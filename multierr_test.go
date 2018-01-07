@@ -22,8 +22,7 @@ func TestIt(t *testing.T) {
 	switch e := e.(type) {
 	case multierr.Error:
 		if e.Error() != `Error1
-Error2
-` {
+Error2` {
 			t.Fail()
 		}
 	default:
@@ -35,8 +34,7 @@ Error2
 	case multierr.Error:
 		if e.Error() != `Error1
 Error2
-Error3
-` {
+Error3` {
 			t.Fail()
 		}
 	default:
@@ -48,32 +46,38 @@ Error3
 	case multierr.Error:
 		if e.Error() != `Error1
 Error2
-Error3
-` {
+Error3` {
 			t.Fail()
 		}
 	default:
 		t.Fail()
 	}
-}
 
-func TestMultiErr_Append(t *testing.T) {
-	var me multierr.Error
-	if me != nil {
-		t.Fail()
-	}
-	me.Append(errors.New("Error1"))
-	if me == nil {
-		t.Fail()
-	}
-	if me.Error() != `Error1
-` {
-		t.Fail()
-	}
-	me.Append(errors.New("Error2"))
-	if me.Error() != `Error1
+	var e2 error = multierr.Error{errors.New("Error 0")}
+	e2 = multierr.Append(e2, e)
+	switch e2:= e2.(type) {
+	case multierr.Error:
+		if e2.Error() != `Error 0
+Error1
 Error2
-` {
+Error3` {
+			t.Fail()
+		}
+	default:
+		t.Fail()
+	}
+
+	e2 = multierr.Append(errors.New("Error -1"), e2)
+	switch e2:= e2.(type) {
+	case multierr.Error:
+		if e2.Error() != `Error -1
+Error 0
+Error1
+Error2
+Error3` {
+			t.Fail()
+		}
+	default:
 		t.Fail()
 	}
 }
