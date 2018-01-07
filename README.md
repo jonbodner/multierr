@@ -5,10 +5,9 @@ A simple multiple error holder for Go
 
 Sometimes you need to return more than one error from a function. The
 `multierr` package provides a simple slice of error instances called
-`Error`, which meets the `error` interface. `Error` has an `Append`
-method that wraps access to the built-in `append`; this is provided as a
-convenience. The more common way to use this package is via the
-package-level function `Append`.
+`Error`, which meets the `error` interface.
+
+The way to use this package is via the package-level function `Append`.
 
 ## Usage
 
@@ -102,3 +101,56 @@ There was an error
 If the type of `out` is `multierr.Error` and no errors are ever appended to it, `out` is equal to `nil` in the `meErr` function. But once the
 value is returned, it is assigned to a variable of type `error`, which is an interface. The returned value has a type of `multierr.Error` and a value of `nil`.
 This is sufficient for it to be considered non-nil, which makes `e != nil` true.
+
+The `multierr.Append` function uses reflection to properly handle parameters where the underlying value is `nil`. This will work correctly:
+
+```go
+package main
+
+import (
+	"github.com/jonbodner/multierr"
+	"fmt"
+	"errors"
+)
+
+func main() {
+	var e error
+	var e2 multierr.Error
+
+	e = multierr.Append(e, e2)
+	checkError(e)
+
+	e = multierr.Append(e, errors.New("This is an error"))
+	checkError(e)
+
+	e = multierr.Append(e, errors.New("I'm a second error"))
+	checkError(e)
+
+	e2 = multierr.Error{errors.New("I'm a third error"), errors.New("I'm a fourth error")}
+	e = multierr.Append(e, e2)
+	checkError(e)
+}
+
+func checkError(e error) {
+	fmt.Println("is nil",e == nil)
+	switch e := e.(type) {
+	case multierr.Error:
+		fmt.Println("This is a multierr of length",len(e))
+	default:
+		fmt.Println("This is a single error")
+	}
+}
+```
+
+If you run this code, it will print out:
+
+```
+is nil true
+This is a single error
+is nil false
+This is a single error
+is nil false
+This is a multierr of length 2
+is nil false
+This is a multierr of length 4
+```

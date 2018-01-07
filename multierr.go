@@ -22,6 +22,9 @@ func (me Error) Error() string {
 // If the first parameter is a Error, then the function returns the second parameter
 // appended to the first. Otherwise, the function returns a Error containing both parameters.
 func Append(e1 error, e2 error) error {
+	if isNil(e1) && isNil(e2) {
+		return nil
+	}
 	if isNil(e1) {
 		return e2
 	}
