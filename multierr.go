@@ -55,8 +55,6 @@ func isNil(i interface{}) bool {
 	}
 	v := reflect.ValueOf(i)
 	switch v.Kind() {
-	case reflect.Invalid:
-		return i == nil
 	case reflect.Interface, reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.Slice:
 		return v.IsNil()
 	default:
