@@ -154,3 +154,14 @@ This is a multierr of length 2
 is nil false
 This is a multierr of length 4
 ```
+
+### Is and As
+`multierr.Error` supports the `errors.Is` and `errors.As` functions that were added in Go 1.13. The functions
+return `true` if any of the errors contained in the multierror match the target for `Is` or `As`.  `errors.Is` will
+also return `true` when you compare two multierrors with identical contents.
+
+## Wrapping vs. Multierror
+When would you want to wrap an error vs. using a multierror? A multierror is useful when there are multiple simultaneous
+problems (such as multiple validation failures for a single struct). Wrapping errors is useful when there is a  single error,
+but you want to add additional information to describe the error or the place in the code where it happened. 
+
